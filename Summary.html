@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>clinician · patient summary</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #eef2f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .dashboard {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 12px 30px rgba(0,20,30,0.1);
+            min-height: 600px;
+        }
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e9f0;
+            padding: 2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding-bottom: 1.8rem;
+            border-bottom: 1px solid #ecf2f7;
+            margin-bottom: 1.5rem;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: #0b3b5c;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+        .user-info h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #103247;
+        }
+        .badge {
+            background: #daf1f0;
+            color: #0f5c5c;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 0.2rem;
+        }
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-bottom: 1.5rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.8rem 0.9rem;
+            border-radius: 14px;
+            color: #345a73;
+            font-weight: 500;
+        }
+        .nav-item i {
+            width: 24px;
+            color: #4e7692;
+        }
+        .nav-item.active {
+            background: #e8f0f8;
+            color: #0a3d5e;
+            font-weight: 600;
+        }
+        .main {
+            flex: 1;
+            background: #fafdff;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .greeting h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0a2a3a;
+        }
+        .greeting p {
+            color: #4f718a;
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
+        .chip {
+            background: #daeaf5;
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #13638b;
+        }
+        .action-icons {
+            display: flex;
+            gap: 0.8rem;
+        }
+        .action-icons i {
+            background: white;
+            padding: 0.6rem;
+            border-radius: 50%;
+            color: #2a5779;
+            border: 1px solid #dae6f2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-icons i:hover {
+            background: #e8f3fc;
+            color: #0b3b5c;
+        }
+        
+        /* Patient Info Form Styles */
+        .patient-form-section {
+            background: #f5fafd;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #1a6f9f;
+        }
+        
+        .patient-form-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0b3b5c;
+            margin-bottom: 1rem;
+        }
+        
+        .patient-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        
+        .form-field label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #345a73;
+        }
+        
+        .form-field input,
+        .form-field select {
+            padding: 0.8rem;
+            border: 1.5px solid #dae6f2;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .form-field input:focus,
+        .form-field select:focus {
+            outline: none;
+            border-color: #1a6f9f;
+            box-shadow: 0 0 0 3px rgba(26, 111, 159, 0.1);
+        }
+        
+        .form-field input::placeholder {
+            color: #a0b8cc;
+        }
+        
+        .summary-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 1.8rem;
+            border: 1px solid #deeaf3;
+            box-shadow: 0 4px 12px rgba(0,30,40,0.03);
+        }
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .card-title i {
+            font-size: 1.4rem;
+            color: #1f6f9c;
+            background: #e7f0f9;
+            padding: 0.5rem;
+            border-radius: 14px;
+        }
+        .card-title h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #144a69;
+        }
+        
+        /* Text Box Styles */
+        .text-box {
+            width: 100%;
+            padding: 1rem;
+            border: 1.5px solid #dae6f2;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            transition: all 0.2s;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .text-box:focus {
+            outline: none;
+            border-color: #1a6f9f;
+            box-shadow: 0 0 0 3px rgba(26, 111, 159, 0.1);
+        }
+        
+        .text-box.large {
+            min-height: 150px;
+        }
+        
+        /* Label for text box */
+        .text-box-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #345a73;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Character count */
+        .char-count {
+            text-align: right;
+            font-size: 0.75rem;
+            color: #60829e;
+            margin-top: 0.3rem;
+        }
+        
+        /* Action buttons */
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+        
+        .card-btn {
+            background: none;
+            border: 1px solid #dae6f2;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #345a73;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .card-btn:hover {
+            background: #e8f3fc;
+            border-color: #1a6f9f;
+            color: #0b3b5c;
+        }
+        
+        .card-btn.primary {
+            background: #0b3b5c;
+            border-color: #0b3b5c;
+            color: white;
+        }
+        
+        .card-btn.primary:hover {
+            background: #1a6f9f;
+        }
+        
+        /* Follow-up section */
+        .followup-container {
+            margin-top: 1.2rem;
+            background: #ecf7fa;
+            border-radius: 40px;
+            padding: 0.8rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .followup-input {
+            border: 1px solid #b0cde0;
+            background: white;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            width: 200px;
+        }
+        
+        .followup-input:focus {
+            outline: none;
+            border-color: #1a6f9f;
+        }
+        
+        /* File info */
+        .file-info {
+            background: #f0f7ff;
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #345a73;
+        }
+        
+        /* Save button */
+        .save-all-btn {
+            background: #0b3b5c;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            margin: 0 auto;
+        }
+        
+        .save-all-btn:hover {
+            background: #1a6f9f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(11, 59, 92, 0.3);
+        }
+        
+        /* Debug panel */
+        .debug-panel {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            border: 1px solid #deeaf3;
+            display: none;
+        }
+        
+        .debug-panel pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .spacer { display: none; }
+        
+        @media (max-width: 700px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="sidebar">
+        <div class="user-card">
+            <div class="avatar">JD</div>
+            <div class="user-info">
+                <h2>John Doe</h2>
+                <span class="badge"><i class="fas fa-stethoscope" style="margin-right: 4px;"></i>Doctor</span>
+            </div>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active"><i class="fas fa-bars"></i>Menu</div>
+            <div class="nav-item"><i class="fas fa-envelope"></i>Messages</div>
+            <div class="nav-item"><i class="fas fa-bell"></i>Notifications</div>
+        </div>
+    </div>
+    
+    <div class="main">
+        <div class="main-header">
+            <div class="greeting">
+                <h1>New Patient Summary</h1>
+                <p><i class="fas fa-file-medical"></i> Enter patient information below</p>
+            </div>
+            <div class="action-icons">
+                <i class="fas fa-print" onclick="window.print()" title="Print"></i>
+                <i class="fas fa-save" onclick="window.saveToDatabase ? saveToDatabase() : alert('Save function not ready yet')" title="Save to Database" style="color: #0b3b5c;"></i>
+                <i class="fas fa-bug" onclick="toggleDebug()" title="Toggle Debug" style="color: #6c757d;"></i>
+            </div>
+        </div>
+        
+        <!-- File Info (from upload) -->
+        <div class="file-info" id="fileInfo" style="display: none;">
+            <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
+            <span id="fileName"></span>
+        </div>
+        
+        <!-- Patient Information Form -->
+        <div class="patient-form-section">
+            <div class="patient-form-title">
+                <i class="fas fa-user-plus"></i>
+                <h3>New Patient Demographics</h3>
+            </div>
+            
+            <div class="patient-form-grid">
+                <div class="form-field">
+                    <label for="patientName">Full Name <span style="color: #dc3545;">*</span></label>
+                    <input type="text" id="patientName" placeholder="e.g., John Smith" value="">
+                </div>
+                
+                <div class="form-field">
+                    <label for="patientAge">Age</label>
+                    <input type="number" id="patientAge" placeholder="e.g., 45" min="0" max="150" value="">
+                </div>
+                
+                <div class="form-field">
+                    <label for="patientGender">Gender</label>
+                    <select id="patientGender">
+                        <option value="" selected>-- Select Gender --</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                </div>
+                
+                <div class="form-field">
+                    <label for="patientMRN">Medical Record Number (MRN)</label>
+                    <input type="text" id="patientMRN" placeholder="e.g., MRN-2024-001" value="">
+                </div>
+            </div>
+        </div>
+        
+        <div class="summary-grid">
+            <!-- Clinical Summary Card -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h2>Clinical Summary</h2>
+                </div>
+                <label class="text-box-label" for="clinicalSummary">Enter clinical findings, vital signs, and observations:</label>
+                <textarea 
+                    class="text-box large" 
+                    id="clinicalSummary" 
+                    placeholder="e.g., Patient presents with..."
+                >Johnathan D. Motshegwa, 35-year-old male, presents for routine preventive screening. Vital signs are normal (BP 120/78 mmHg, HR 72 bpm, BMI 23.7). No reported symptoms; physical examination and laboratory tests (blood glucose, cholesterol, urinalysis, HIV test) are within normal limits. No chronic conditions; past surgery: appendectomy (2015). Family history: hypertension (father), diabetes (mother). Allergic to penicillin.</textarea>
+                <div class="char-count" id="clinicalSummaryCount">0 characters</div>
+            </div>
+            
+            <!-- Diagnosis Card -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-notes-medical"></i>
+                    <h2>Diagnosis</h2>
+                </div>
+                <label class="text-box-label" for="diagnosis">Enter primary and secondary diagnoses:</label>
+                <textarea 
+                    class="text-box large" 
+                    id="diagnosis" 
+                    placeholder="e.g., Primary: HIV-1 infection (B24)"
+                >Healthy adult male; no acute or chronic illness identified.</textarea>
+                <div class="char-count" id="diagnosisCount">0 characters</div>
+            </div>
+            
+            <!-- Recommended Treatment Card -->
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-prescription-bottle"></i>
+                    <h2>Recommended Treatment</h2>
+                </div>
+                <label class="text-box-label" for="treatment">Enter medications, dosages, and treatment plan:</label>
+                <textarea 
+                    class="text-box large" 
+                    id="treatment" 
+                    placeholder="e.g., 1. Biktarvy 50/200/25 mg daily"
+                >Maintain healthy lifestyle: balanced diet, regular exercise (3–4x/week)
+
+Annual check-up recommended
+
+Continue vaccination schedule (flu, Tdap boosters)
+
+Monitor blood pressure and cholesterol every 12 months</textarea>
+                <div class="char-count" id="treatmentCount">0 characters</div>
+                
+                <!-- Follow-up section -->
+                <div class="followup-container">
+                    <span><i class="fas fa-stethoscope" style="color:#1b6991;"></i> Next follow-up:</span>
+                    <input type="text" class="followup-input" id="followupDate" placeholder="e.g., 23 May 2025" value="">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Save Button -->
+        <div style="margin-top: 2rem; text-align: center;">
+            <button class="save-all-btn" onclick="window.saveToDatabase ? saveToDatabase() : alert('Save function not ready yet')">
+                <i class="fas fa-cloud-upload-alt"></i> Save Patient Record to Database
+            </button>
+        </div>
+        
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel">
+            <h4 style="margin-bottom: 0.5rem; color: #0b3b5c;">Debug Information</h4>
+            <pre id="debugContent">Click save to see data...</pre>
+        </div>
+        
+        <!-- Back to Dashboard Link -->
+        <div style="margin-top: 1rem; text-align: center;">
+            <a href="dashboard.html" style="color: #0b3b5c; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Include Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    // ===== SUPABASE CONFIGURATION =====
+    const SUPABASE_URL = 'https://dpippnqmuqsqhbstvqmm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwaXBwbnFtdXFzcWhic3R2cW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDU4NzQsImV4cCI6MjA4NzI4MTg3NH0.rWuV1zLv5W-QPjmlvdMmrVn007-tqlDnbLq7WCjg7qU';
+    
+    // Initialize Supabase client - use a DIFFERENT name (not 'supabase')
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // DOM Elements
+    const fileName = document.getElementById('fileName');
+    const fileInfo = document.getElementById('fileInfo');
+    const debugPanel = document.getElementById('debugPanel');
+    const debugContent = document.getElementById('debugContent');
+    
+    // Initialize character counters
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCharCount('clinicalSummary');
+        updateCharCount('diagnosis');
+        updateCharCount('treatment');
+        
+        // Add input listeners for character counts
+        document.getElementById('clinicalSummary').addEventListener('input', function() {
+            updateCharCount('clinicalSummary');
+        });
+        document.getElementById('diagnosis').addEventListener('input', function() {
+            updateCharCount('diagnosis');
+        });
+        document.getElementById('treatment').addEventListener('input', function() {
+            updateCharCount('treatment');
+        });
+        
+        // Load uploaded file info from session
+        loadUploadedFileInfo();
+        
+        // Check if user is authenticated
+        checkAuth();
+        
+        // Test Supabase connection
+        testConnection();
+        
+        // Make save function globally available
+        window.saveToDatabase = saveToDatabase;
+        window.toggleDebug = toggleDebug;
+    });
+    
+    // Test Supabase connection
+    async function testConnection() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('patients')
+                .select('count', { count: 'exact', head: true });
+            
+            if (error) {
+                console.error('Supabase connection error:', error);
+                showNotification('⚠️ Supabase connection issue: ' + error.message, 'error');
+            } else {
+                console.log('✅ Supabase connected successfully');
+            }
+        } catch (e) {
+            console.error('Connection test failed:', e);
+        }
+    }
+    
+    // Toggle debug panel
+    function toggleDebug() {
+        if (debugPanel.style.display === 'none' || debugPanel.style.display === '') {
+            debugPanel.style.display = 'block';
+            updateDebugInfo();
+        } else {
+            debugPanel.style.display = 'none';
+        }
+    }
+    
+    // Update debug info
+    function updateDebugInfo() {
+        const patientData = {
+            patient_name: document.getElementById('patientName').value.trim() || '(empty)',
+            patient_age: document.getElementById('patientAge').value || '(empty)',
+            patient_gender: document.getElementById('patientGender').value || '(empty)',
+            patient_mrn: document.getElementById('patientMRN').value.trim() || '(empty)',
+            clinical_summary: (document.getElementById('clinicalSummary').value || '').substring(0, 50) + '...',
+            diagnosis: (document.getElementById('diagnosis').value || '').substring(0, 50) + '...',
+            recommended_treatment: (document.getElementById('treatment').value || '').substring(0, 50) + '...',
+            next_followup: document.getElementById('followupDate').value.trim() || '(empty)',
+            uploaded_file_name: fileName.textContent || '(none)'
+        };
+        
+        debugContent.textContent = JSON.stringify(patientData, null, 2);
+    }
+    
+    // Check authentication
+    async function checkAuth() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            showNotification('Please log in first', 'error');
+            setTimeout(() => {
+                window.location.href = '../login/login.html';
+            }, 2000);
+        } else {
+            console.log('Logged in as:', session.user.email);
+        }
+    }
+    
+    // Load uploaded file info from session
+    function loadUploadedFileInfo() {
+        const patientRecord = sessionStorage.getItem('patientRecord');
+        if (patientRecord) {
+            try {
+                const data = JSON.parse(patientRecord);
+                if (data.filename) {
+                    fileName.textContent = data.filename;
+                    fileInfo.style.display = 'flex';
+                }
+            } catch (e) {
+                console.error('Error loading patient data:', e);
+            }
+        }
+    }
+    
+    // Update character count
+    function updateCharCount(fieldId) {
+        const field = document.getElementById(fieldId);
+        const count = field.value.length;
+        document.getElementById(fieldId + 'Count').textContent = count + ' characters';
+    }
+    
+    // Validate form before saving
+    function validateForm() {
+        const patientName = document.getElementById('patientName').value.trim();
+        
+        if (!patientName) {
+            showNotification('Please enter patient name', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Save to Supabase Database
+    async function saveToDatabase() {
+        if (!validateForm()) return;
+        
+        // Show loading state
+        showNotification('Saving to database...', 'info');
+        
+        try {
+            // Get current user session
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            
+            if (sessionError) throw sessionError;
+            
+            if (!session) {
+                showNotification('Please log in first', 'error');
+                window.location.href = '../login/login.html';
+                return;
+            }
+            
+            console.log('Current user:', session.user.id);
+            
+            // Prepare patient data
+            const patientData = {
+                patient_name: document.getElementById('patientName').value.trim(),
+                patient_age: document.getElementById('patientAge').value ? parseInt(document.getElementById('patientAge').value) : null,
+                patient_gender: document.getElementById('patientGender').value || null,
+                patient_mrn: document.getElementById('patientMRN').value.trim() || null,
+                clinical_summary: document.getElementById('clinicalSummary').value.trim() || null,
+                diagnosis: document.getElementById('diagnosis').value.trim() || null,
+                recommended_treatment: document.getElementById('treatment').value.trim() || null,
+                next_followup: document.getElementById('followupDate').value.trim() || null,
+                uploaded_file_name: fileName.textContent || null,
+                created_by: session.user.id
+            };
+            
+            // Update debug panel
+            updateDebugInfo();
+            
+            console.log('Saving patient data:', patientData);
+            
+            // Test the insert with a simple query first
+            const { data: testData, error: testError } = await supabaseClient
+                .from('patients')
+                .select('id')
+                .limit(1);
+            
+            if (testError) {
+                console.error('Cannot access patients table:', testError);
+                showNotification('❌ Cannot access patients table: ' + testError.message, 'error');
+                return;
+            }
+            
+            // Insert into Supabase
+            const { data, error } = await supabaseClient
+                .from('patients')
+                .insert([patientData])
+                .select();
+            
+            if (error) {
+                console.error('Insert error details:', error);
+                throw error;
+            }
+            
+            console.log('Saved successfully:', data);
+            
+            // Show success message with data
+            showNotification('✅ Patient record saved successfully! ID: ' + data[0].id, 'success');
+            
+            // Clear session storage
+            sessionStorage.removeItem('patientRecord');
+            
+            // Option to view all patients
+            setTimeout(() => {
+                if (confirm('Record saved! View all patients?')) {
+                    window.location.href = 'patient_list.php';
+                }
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error saving to database:', error);
+            
+            // Detailed error message
+            let errorMsg = error.message;
+            if (error.details) errorMsg += ' - ' + error.details;
+            if (error.hint) errorMsg += ' - ' + error.hint;
+            
+            showNotification('❌ Error saving: ' + errorMsg, 'error');
+            
+            // Show in debug panel
+            debugContent.textContent = 'ERROR: ' + JSON.stringify(error, null, 2);
+            debugPanel.style.display = 'block';
+        }
+    }
+    
+    // Show notification
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.textContent = message;
+        
+        // Set colors based on type
+        let bgColor = '#0b3b5c';
+        if (type === 'success') bgColor = '#0f5c5c';
+        if (type === 'error') bgColor = '#9e2b2b';
+        if (type === 'info') bgColor = '#1a6f9f';
+        
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${bgColor};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+            word-wrap: break-word;
+        `;
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.remove();
+        }, 5000);
+    }
+    
+    // Optional: Save draft to localStorage
+    function saveDraft() {
+        const draft = {
+            patientName: document.getElementById('patientName').value,
+            patientAge: document.getElementById('patientAge').value,
+            patientGender: document.getElementById('patientGender').value,
+            patientMRN: document.getElementById('patientMRN').value,
+            clinicalSummary: document.getElementById('clinicalSummary').value,
+            diagnosis: document.getElementById('diagnosis').value,
+            treatment: document.getElementById('treatment').value,
+            followupDate: document.getElementById('followupDate').value
+        };
+        localStorage.setItem('patientDraft', JSON.stringify(draft));
+        showNotification('Draft saved locally', 'info');
+    }
+    
+    // Load draft from localStorage
+    function loadDraft() {
+        const draft = localStorage.getItem('patientDraft');
+        if (draft) {
+            const data = JSON.parse(draft);
+            document.getElementById('patientName').value = data.patientName || '';
+            document.getElementById('patientAge').value = data.patientAge || '';
+            document.getElementById('patientGender').value = data.patientGender || '';
+            document.getElementById('patientMRN').value = data.patientMRN || '';
+            document.getElementById('clinicalSummary').value = data.clinicalSummary || '';
+            document.getElementById('diagnosis').value = data.diagnosis || '';
+            document.getElementById('treatment').value = data.treatment || '';
+            document.getElementById('followupDate').value = data.followupDate || '';
+            
+            // Update character counts
+            updateCharCount('clinicalSummary');
+            updateCharCount('diagnosis');
+            updateCharCount('treatment');
+            
+            showNotification('Draft loaded', 'info');
+        }
+    }
+    
+    // Auto-save every 30 seconds
+    setInterval(saveDraft, 30000);
+</script>
+</body>
+</html>

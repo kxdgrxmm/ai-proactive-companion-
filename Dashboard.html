@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>clinician · companion</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #eef2f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .dashboard {
+            display: flex;
+            width: 100%;
+            max-width: 1100px;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 12px 30px rgba(0,20,30,0.1);
+            min-height: 600px;
+        }
+        .sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #e2e9f0;
+            padding: 2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding-bottom: 1.8rem;
+            border-bottom: 1px solid #ecf2f7;
+            margin-bottom: 1.5rem;
+        }
+        .avatar {
+            width: 48px;
+            height: 48px;
+            background: #0b3b5c;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+        .user-info h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #103247;
+        }
+        .badge {
+            background: #daf1f0;
+            color: #0f5c5c;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            display: inline-block;
+            margin-top: 0.2rem;
+        }
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            margin-bottom: 1.5rem;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            padding: 0.8rem 0.9rem;
+            border-radius: 14px;
+            color: #345a73;
+            font-weight: 500;
+        }
+        .nav-item i {
+            width: 24px;
+            color: #4e7692;
+        }
+        .nav-item.active {
+            background: #e8f0f8;
+            color: #0a3d5e;
+            font-weight: 600;
+        }
+        
+        /* File Upload Styles */
+        .upload-card {
+            background: #f5fafd;
+            border: 2px dashed #b0cde0;
+            border-radius: 20px;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            margin: 0.5rem 0 1rem 0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .upload-card:hover {
+            background: #e8f3fc;
+            border-color: #1a6f9f;
+        }
+        .upload-card.dragover {
+            background: #d4e6f5;
+            border-color: #0b3b5c;
+        }
+        .upload-icon {
+            background: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a6f9f;
+            font-size: 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .upload-text {
+            font-weight: 600;
+            color: #0e4b70;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .upload-text small {
+            display: block;
+            font-size: 0.75rem;
+            color: #60829e;
+            margin-top: 0.3rem;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .upload-progress {
+            display: none;
+            margin: 1rem 0;
+            width: 100%;
+            height: 6px;
+            background: #e2e9f0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #0b3b5c;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .upload-status {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .upload-status.success {
+            background: #daf1f0;
+            color: #0f5c5c;
+            display: block;
+        }
+        
+        .upload-status.error {
+            background: #fce8e8;
+            color: #9e2b2b;
+            display: block;
+        }
+        
+        .upload-status.info {
+            background: #e1edf7;
+            color: #0b3b5c;
+            display: block;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            background: #0b3b5c;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 0.9rem;
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 0.5rem;
+        }
+        .submit-btn:hover:not(:disabled) {
+            background: #1a6f9f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(11, 59, 92, 0.3);
+        }
+        .submit-btn:disabled {
+            background: #95b3c9;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        
+        .view-files-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0b3b5c;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .view-files-link:hover {
+            background: #e8f3fc;
+        }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #e2e9f0;
+            border-top-color: #0b3b5c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Main content */
+        .main {
+            flex: 1;
+            background: #fafdff;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .greeting h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0a2a3a;
+        }
+        .greeting p {
+            color: #4f718a;
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
+        .chip {
+            background: #daeaf5;
+            padding: 0.2rem 0.7rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #13638b;
+        }
+        .action-icons {
+            display: flex;
+            gap: 0.8rem;
+        }
+        .action-icons i {
+            background: white;
+            padding: 0.6rem;
+            border-radius: 50%;
+            color: #2a5779;
+            border: 1px solid #dae6f2;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-icons i:hover {
+            background: #e8f3fc;
+            color: #0b3b5c;
+        }
+        /* Logout button specific style */
+        .logout-icon {
+            color: #dc3545 !important;
+        }
+        .logout-icon:hover {
+            background: #fee !important;
+            color: #b02a37 !important;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 1.4rem;
+        }
+        .section-title i {
+            background: #e1edf7;
+            padding: 0.4rem;
+            border-radius: 10px;
+            color: #1f6991;
+        }
+        .section-title h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #17435e;
+        }
+        .patient-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+        .patient-row {
+            background: white;
+            border-radius: 18px;
+            padding: 1rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid #deeaf3;
+            transition: all 0.2s;
+        }
+        .patient-row:hover {
+            border-color: #aac6df;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        .patient-avatar {
+            width: 44px;
+            height: 44px;
+            background: #daecf9;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #176696;
+            font-size: 1.2rem;
+        }
+        .patient-info {
+            flex: 1;
+        }
+        .patient-name {
+            font-weight: 600;
+            color: #113853;
+            margin-bottom: 0.2rem;
+        }
+        .patient-meta {
+            display: flex;
+            gap: 1rem;
+            color: #557e9e;
+            font-size: 0.85rem;
+        }
+        .patient-meta i {
+            margin-right: 0.2rem;
+            width: 14px;
+            color: #6d95b5;
+        }
+        .pill {
+            background: #ecf3fa;
+            border-radius: 40px;
+            padding: 0.2rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #15628b;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 700px) {
+            .dashboard { flex-direction: column; }
+            .sidebar { width: 100%; border-right: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="sidebar">
+        <div class="user-card">
+            <div class="avatar">JD</div>
+            <div class="user-info">
+                <h2>John Doe</h2>
+                <span class="badge"><i class="fas fa-stethoscope"></i>Doctor</span>
+            </div>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active"><i class="fas fa-bars"></i>Menu</div>
+            <div class="nav-item"><i class="fas fa-envelope"></i>Messages</div>
+            <div class="nav-item"><i class="fas fa-bell"></i>Notifications</div>
+        </div>
+        
+        <!-- File Upload Area -->
+        <div class="upload-card" id="uploadCard">
+            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+            <div class="upload-text">
+                New Patient Record Upload
+                <small><i class="fas fa-hand-pointer"></i> Click or drag PDF</small>
+            </div>
+        </div>
+        
+        <!-- Hidden File Input -->
+        <input type="file" id="fileInput" accept=".pdf">
+        
+        <!-- Progress Bar -->
+        <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <!-- Status Message -->
+        <div class="upload-status" id="uploadStatus"></div>
+        
+        <!-- Submit Button -->
+        <button class="submit-btn" id="submitBtn" disabled>
+            <i class="fas fa-robot"></i> Analyze Patient Record
+        </button>
+        
+        <!-- View All Files Link -->
+        <a href="patient_list.php" class="view-files-link">
+            <i class="fas fa-folder-open"></i> View All Patient Files
+        </a>
+    </div>
+    
+    <div class="main">
+        <div class="main-header">
+            <div class="greeting">
+                <h1>Preventive Companion</h1>
+                <p><i class="fas fa-sync-alt"></i> sync · 2h <span class="chip">AI Ready</span></p>
+            </div>
+            <div class="action-icons">
+                <i class="fas fa-search"></i>
+                <i class="fas fa-sliders-h"></i>
+                <i class="fas fa-sync-alt" onclick="refreshPatientList()" title="Refresh"></i>
+                <!-- Logout Button -->
+                <i class="fas fa-sign-out-alt logout-icon" onclick="logout()" title="Logout"></i>
+            </div>
+        </div>
+        
+        <div class="section-title">
+            <i class="fas fa-history"></i>
+            <h3>Recent Patient Records</h3>
+        </div>
+        
+        <div class="patient-list" id="patientList">
+            <!-- Will be populated by JavaScript -->
+            <div class="patient-row">
+                <div class="patient-avatar"><i class="fas fa-spinner fa-pulse"></i></div>
+                <div class="patient-info">
+                    <div class="patient-name">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+    <div id="loadingMessage">Processing file...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Configuration
+    const UPLOAD_URL = 'upload_handler.php';
+    const PROCESS_URL = 'process_patient.php';
+    
+    // Supabase configuration
+    const SUPABASE_URL = 'https://dpippnqmuqsqhbstvqmm.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwaXBwbnFtdXFzcWhic3R2cW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDU4NzQsImV4cCI6MjA4NzI4MTg3NH0.rWuV1zLv5W-QPjmlvdMmrVn007-tqlDnbLq7WCjg7qU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // DOM Elements
+    const uploadCard = document.getElementById('uploadCard');
+    const fileInput = document.getElementById('fileInput');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressBar = document.getElementById('progressBar');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const patientList = document.getElementById('patientList');
+    
+    let currentFile = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadRecentPatients();
+        checkAuth();
+    });
+    
+    // Check authentication
+    async function checkAuth() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            window.location.href = 'login/login.html';
+        } else {
+            // Update user name if available
+            const user = session.user;
+            if (user.email) {
+                document.querySelector('.user-info h2').textContent = user.email.split('@')[0] || 'John Doe';
+            }
+        }
+    }
+
+    // Logout function
+    async function logout() {
+        try {
+            // Show loading overlay during logout
+            loadingOverlay.style.display = 'flex';
+            loadingMessage.textContent = 'Logging out...';
+            
+            // Sign out from Supabase
+            const { error } = await supabaseClient.auth.signOut();
+            
+            if (error) throw error;
+            
+            // Clear any local storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Redirect to login page
+            window.location.href = 'login/login.html';
+        } catch (error) {
+            console.error('Logout error:', error);
+            loadingOverlay.style.display = 'none';
+            alert('Error logging out. Please try again.');
+        }
+    }
+
+    // File Upload Handlers
+    uploadCard.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadCard.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadCard.addEventListener(eventName, () => {
+            uploadCard.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadCard.addEventListener(eventName, () => {
+            uploadCard.classList.remove('dragover');
+        });
+    });
+
+    uploadCard.addEventListener('drop', (e) => {
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Handle file selection
+    function handleFileSelect(file) {
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            showStatus('Only PDF files are allowed', 'error');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            showStatus('File too large. Max 5MB', 'error');
+            return;
+        }
+
+        currentFile = file;
+        showStatus(`Selected: ${file.name}`, 'info');
+        submitBtn.disabled = false;
+    }
+
+    // Submit button click
+    submitBtn.addEventListener('click', async () => {
+        if (!currentFile) {
+            showStatus('Please select a file first', 'error');
+            return;
+        }
+        await uploadFile(currentFile);
+    });
+
+    // Upload file function
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('patient_file', file);
+
+        uploadProgress.style.display = 'block';
+        progressBar.style.width = '0%';
+        showStatus('Uploading...', 'info');
+        loadingOverlay.style.display = 'flex';
+        loadingMessage.textContent = 'Uploading file...';
+
+        try {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                if (progress <= 90) {
+                    progressBar.style.width = progress + '%';
+                }
+            }, 200);
+
+            const response = await fetch(UPLOAD_URL, {
+                method: 'POST',
+                body: formData
+            });
+
+            clearInterval(interval);
+            progressBar.style.width = '100%';
+
+            const result = await response.json();
+
+            if (result.success) {
+                showStatus('✅ Upload successful! Processing...', 'success');
+                sessionStorage.setItem('last_uploaded', result.filename);
+                loadingMessage.textContent = 'Running OCR analysis...';
+                await processFile(result.filename);
+            } else {
+                throw new Error(result.error || 'Upload failed');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            showStatus('❌ ' + error.message, 'error');
+            uploadProgress.style.display = 'none';
+            loadingOverlay.style.display = 'none';
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Process file with OCR
+    async function processFile(filename) {
+        try {
+            const response = await fetch(`${PROCESS_URL}?file=${encodeURIComponent(filename)}&ajax=1`);
+            const result = await response.json();
+
+            if (result.success !== false) {
+                showStatus('✅ Analysis complete!', 'success');
+                sessionStorage.setItem('patient_data', JSON.stringify(result));
+                setTimeout(() => {
+                    window.location.href = `summary.html?file=${encodeURIComponent(filename)}`;
+                }, 1000);
+            } else {
+                throw new Error('OCR processing failed');
+            }
+        } catch (error) {
+            console.error('Processing error:', error);
+            showStatus('❌ Analysis failed, but file uploaded', 'error');
+            loadingOverlay.style.display = 'none';
+            setTimeout(() => {
+                window.location.href = `summary.html?file=${encodeURIComponent(filename)}&ocr=failed`;
+            }, 2000);
+        }
+    }
+
+    // Load recent patients from Supabase
+    async function loadRecentPatients() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('patients')
+                .select('id, patient_name, next_followup, created_at')
+                .order('created_at', { ascending: false })
+                .limit(10);
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                displayPatientList(data);
+            } else {
+                patientList.innerHTML = `
+                    <div class="patient-row">
+                        <div class="patient-avatar"><i class="fas fa-user"></i></div>
+                        <div class="patient-info">
+                            <div class="patient-name">No patients yet</div>
+                            <div class="patient-meta">Upload a new patient record to get started</div>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error loading patients:', error);
+            patientList.innerHTML = `
+                <div class="patient-row">
+                    <div class="patient-avatar"><i class="fas fa-exclamation-triangle" style="color: #dc3545;"></i></div>
+                    <div class="patient-info">
+                        <div class="patient-name">Error loading patients</div>
+                        <div class="patient-meta">${error.message}</div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // Display patient list
+    function displayPatientList(patients) {
+        patientList.innerHTML = patients.map(patient => `
+            <div class="patient-row" onclick="viewPatientProfile('${patient.id}')" style="cursor: pointer;">
+                <div class="patient-avatar"><i class="fas fa-user"></i></div>
+                <div class="patient-info">
+                    <div class="patient-name">${patient.patient_name || 'Unknown'}</div>
+                    <div class="patient-meta">
+                        <span><i class="fas fa-calendar-plus"></i> Added: ${new Date(patient.created_at).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="pill" title="Next appointment">
+                    <i class="fas fa-calendar-check"></i> ${patient.next_followup || 'No follow-up'}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // View patient profile
+    function viewPatientProfile(patientId) {
+        window.location.href = `patient_profile.html?id=${patientId}`;
+    }
+
+    function refreshPatientList() {
+        loadRecentPatients();
+    }
+
+    function showStatus(message, type) {
+        uploadStatus.textContent = message;
+        uploadStatus.className = `upload-status ${type}`;
+        uploadStatus.style.display = 'block';
+
+        if (type !== 'error') {
+            setTimeout(() => {
+                uploadStatus.style.display = 'none';
+            }, 5000);
+        }
+    }
+
+    function resetFileInput() {
+        fileInput.value = '';
+        currentFile = null;
+        submitBtn.disabled = true;
+        uploadProgress.style.display = 'none';
+        progressBar.style.width = '0%';
+    }
+
+    // Make functions globally available
+    window.viewPatientProfile = viewPatientProfile;
+    window.refreshPatientList = refreshPatientList;
+    window.logout = logout;
+</script>
+</body>
+</html>

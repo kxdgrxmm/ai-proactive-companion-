@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #eef2f6;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .profile-header {
+            background: white;
+            border-radius: 2rem 2rem 0 0;
+            padding: 2rem;
+            border-bottom: 1px solid #deeaf3;
+        }
+        .back-btn {
+            color: #0b3b5c;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .back-btn:hover {
+            color: #1a6f9f;
+        }
+        .patient-name-large {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0b3b5c;
+            margin-bottom: 0.5rem;
+        }
+        .patient-demographics {
+            display: flex;
+            gap: 2rem;
+            color: #345a73;
+            font-size: 1.1rem;
+        }
+        .patient-demographics i {
+            width: 20px;
+            color: #1a6f9f;
+        }
+        .next-appointment {
+            margin-top: 1rem;
+            background: #ecf7fa;
+            border-radius: 40px;
+            padding: 0.8rem 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .profile-content {
+            background: white;
+            border-radius: 0 0 2rem 2rem;
+            padding: 2rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+        .section-title i {
+            font-size: 1.4rem;
+            color: #1f6f9c;
+            background: #e7f0f9;
+            padding: 0.5rem;
+            border-radius: 14px;
+        }
+        .section-title h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #144a69;
+        }
+        .section-content {
+            background: #f8fbfe;
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid #deeaf3;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0f7ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .file-info a {
+            color: #0b3b5c;
+            text-decoration: none;
+        }
+        .file-info a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .patient-demographics { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <a href="dashboard.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div id="patientHeader">
+                <div class="patient-name-large">Loading...</div>
+                <div class="patient-demographics" id="patientDemographics"></div>
+                <div class="next-appointment" id="nextAppointment">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Next follow-up: Loading...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="profile-content" id="profileContent">
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    <h2>Clinical Summary</h2>
+                </div>
+                <div class="section-content" id="clinicalSummary">Loading...</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-notes-medical"></i>
+                    <h2>Diagnosis</h2>
+                </div>
+                <div class="section-content" id="diagnosis">Loading...</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-prescription-bottle"></i>
+                    <h2>Recommended Treatment</h2>
+                </div>
+                <div class="section-content" id="treatment">Loading...</div>
+            </div>
+            
+            <div class="file-info" id="fileInfo" style="display: none;">
+                <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
+                <span>Uploaded file: </span>
+                <a href="#" id="fileLink" target="_blank">View PDF</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://dpippnqmuqsqhbstvqmm.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwaXBwbnFtdXFzcWhic3R2cW1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MDU4NzQsImV4cCI6MjA4NzI4MTg3NH0.rWuV1zLv5W-QPjmlvdMmrVn007-tqlDnbLq7WCjg7qU';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Get patient ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const patientId = urlParams.get('id');
+
+        async function loadPatientProfile() {
+            if (!patientId) {
+                document.querySelector('.patient-name-large').textContent = 'No patient ID provided';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('patients')
+                    .select('*')
+                    .eq('id', patientId)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    // Display patient info
+                    document.querySelector('.patient-name-large').textContent = data.patient_name || 'Unknown';
+                    
+                    const demographics = [];
+                    if (data.patient_age) demographics.push(`<i class="fas fa-calendar-alt"></i> ${data.patient_age} years`);
+                    if (data.patient_gender) demographics.push(`<i class="fas fa-venus-mars"></i> ${data.patient_gender}`);
+                    if (data.patient_mrn) demographics.push(`<i class="fas fa-id-card"></i> MRN: ${data.patient_mrn}`);
+                    
+                    document.getElementById('patientDemographics').innerHTML = demographics.join(' ');
+                    
+                    // Next appointment
+                    if (data.next_followup) {
+                        document.getElementById('nextAppointment').innerHTML = `
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Next follow-up: ${data.next_followup}</span>
+                        `;
+                    } else {
+                        document.getElementById('nextAppointment').style.display = 'none';
+                    }
+                    
+                    // Clinical sections
+                    document.getElementById('clinicalSummary').textContent = data.clinical_summary || 'No clinical summary available';
+                    document.getElementById('diagnosis').textContent = data.diagnosis || 'No diagnosis available';
+                    document.getElementById('treatment').textContent = data.recommended_treatment || 'No treatment information available';
+                    
+                    // File info
+                    if (data.uploaded_file_name) {
+                        document.getElementById('fileInfo').style.display = 'flex';
+                        document.getElementById('fileLink').href = 'uploads/' + data.uploaded_file_name;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading patient:', error);
+                document.querySelector('.patient-name-large').textContent = 'Error loading patient data';
+            }
+        }
+
+        loadPatientProfile();
+    </script>
+</body>
+</html>
